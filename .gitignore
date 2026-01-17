@@ -1,0 +1,16 @@
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Optional: Uncomment if you want to ignore config.js (contains Supabase keys)
+# config.js

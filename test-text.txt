@@ -1,0 +1,1 @@
+The quick brown fox jumps over the lazy dog. This sentence contains words of varying lengths. I am a short word. Extraordinary is a very long word. Numbers like 1234 should pause longer. Questions need breaks too, right? Yes, they do! Commas create pauses, semicolons too; and dashes—like this—also pause briefly.

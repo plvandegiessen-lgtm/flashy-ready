@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Flashy Ready - Fast RSVP Reading App">
+    <title>Flashy Ready</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- EPUBjs Library -->
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Config -->
+    <script src="config.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header>
+            <h1>⚡ Flashy Ready</h1>
+            <div id="userInfo" class="user-info hidden">
+                <span id="userEmail"></span>
+                <button id="logoutBtn" class="icon-btn" aria-label="Logout">🚪</button>
+            </div>
+            <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
+        </header>
+
+        <!-- Login/Signup Screen -->
+        <div id="authScreen" class="screen active">
+            <div class="auth-container">
+                <h2>Welcome to Flashy Ready</h2>
+                <p class="auth-subtitle">Sign in to sync your books and progress across devices</p>
+
+                <div id="authTabs" class="auth-tabs">
+                    <button id="loginTab" class="auth-tab active">Login</button>
+                    <button id="signupTab" class="auth-tab">Sign Up</button>
+                </div>
+
+                <form id="authForm" class="auth-form">
+                    <input type="email" id="authEmail" placeholder="Email" required>
+                    <input type="password" id="authPassword" placeholder="Password" required>
+                    <input type="password" id="authConfirmPassword" placeholder="Confirm Password" class="hidden" required>
+
+                    <button type="submit" id="authSubmitBtn" class="auth-submit-btn">Login</button>
+                    <div id="authError" class="auth-error hidden"></div>
+                    <div id="authSuccess" class="auth-success hidden"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Screen - File Upload -->
+        <div id="uploadScreen" class="screen">
+            <div class="upload-container">
+                <h2>Load Your Text</h2>
+
+                <div class="upload-options">
+                    <label for="fileInput" class="upload-btn">
+                        📁 Upload File
+                        <input type="file" id="fileInput" accept=".txt,.epub,.pdf" hidden>
+                    </label>
+
+                    <button id="pasteBtn" class="upload-btn">
+                        📋 Paste Text
+                    </button>
+                </div>
+
+                <div class="supported-formats">
+                    Supports: .txt, .epub, .pdf, or paste
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="loading-indicator hidden">
+                    <div class="loading-spinner"></div>
+                    <p id="loadingText">Processing file...</p>
+                </div>
+
+                <!-- Recent Books -->
+                <div id="recentBooks" class="recent-books hidden">
+                    <h3>Continue Reading</h3>
+                    <div id="recentBooksList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RSVP Reader Screen -->
+        <div id="readerScreen" class="screen">
+            <div class="reader-container">
+                <!-- Progress Bar -->
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+
+                <!-- Word Display -->
+                <div id="wordDisplay" class="word-display">
+                    <div id="wordText" class="word-text">Ready</div>
+                </div>
+
+                <!-- Position Info -->
+                <div class="position-info">
+                    <span id="wordPosition">0 / 0</span>
+                    <span id="timeRemaining">0:00</span>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <button id="playPauseBtn" class="control-btn play-pause">▶️ Start</button>
+                    <button id="bookmarkBtn" class="control-btn">🔖</button>
+                    <button id="restartBtn" class="control-btn">↺</button>
+                    <button id="backBtn" class="control-btn">← Back</button>
+                </div>
+
+                <!-- Speed Control -->
+                <div class="speed-control">
+                    <label for="wpmSlider">
+                        <span>Speed: </span>
+                        <span id="wpmValue">300</span>
+                        <span> WPM</span>
+                    </label>
+                    <input type="range" id="wpmSlider" min="200" max="1200" value="300" step="50">
+                    <div class="speed-presets">
+                        <button class="preset-btn" data-wpm="250">250</button>
+                        <button class="preset-btn" data-wpm="400">400</button>
+                        <button class="preset-btn" data-wpm="600">600</button>
+                        <button class="preset-btn" data-wpm="800">800</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paste Modal -->
+        <div id="pasteModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Paste Your Text</h2>
+                <textarea id="pasteTextarea" placeholder="Paste or type your text here..."></textarea>
+                <div class="modal-buttons">
+                    <button id="pasteConfirmBtn" class="btn-primary">Start Reading</button>
+                    <button id="pasteCancelBtn" class="btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Settings</h2>
+
+                <div class="setting-group">
+                    <label for="fontSizeSlider">Font Size</label>
+                    <input type="range" id="fontSizeSlider" min="24" max="120" value="48" step="4">
+                    <span id="fontSizeValue">48px</span>
+                </div>
+
+                <div class="setting-group">
+                    <label for="themeSelect">Theme</label>
+                    <select id="themeSelect">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="sepia">Sepia</option>
+                        <option value="blue">Blue</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label for="highlightToggle">
+                        <input type="checkbox" id="highlightToggle" checked>
+                        Highlight Focus Letter (ORP)
+                    </label>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Bookmarks</h3>
+                    <div id="bookmarksList" class="bookmarks-list"></div>
+                </div>
+
+                <div class="setting-group">
+                    <button id="clearDataBtn" class="btn-danger">Clear All Data</button>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="settingsCloseBtn" class="btn-primary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
