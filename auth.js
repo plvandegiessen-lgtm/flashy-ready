@@ -100,13 +100,23 @@ class AuthManager {
             } else {
                 const { data, error } = await this.supabase.auth.signUp({
                     email,
-                    password
+                    password,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
                 });
 
                 if (error) throw error;
 
-                this.showSuccess('Account created! Please check your email to verify your account.');
-                // Note: Supabase sends a verification email automatically
+                // Check if email confirmation is required
+                if (data.user && !data.session) {
+                    this.showSuccess('Account created! Please check your email to verify your account before logging in.');
+                } else if (data.session) {
+                    // Email confirmation is disabled, user is logged in immediately
+                    this.currentUser = data.user;
+                    this.showSuccess('Account created successfully!');
+                    setTimeout(() => this.showApp(), 1000);
+                }
             }
         } catch (error) {
             console.error('Auth error:', error);

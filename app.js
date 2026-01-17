@@ -107,25 +107,49 @@ class FlashyReady {
             const arrayBuffer = await file.arrayBuffer();
             const book = ePub(arrayBuffer);
 
-            // Get all spine items (chapters/sections)
+            // Wait for book to be ready
             await book.ready;
 
             let fullText = '';
+
+            // Get the spine (ordered list of content)
             const spine = await book.loaded.spine;
+            const totalSections = spine.items.length;
 
             // Extract text from each section
-            for (let item of spine.items) {
+            for (let i = 0; i < spine.items.length; i++) {
+                const item = spine.items[i];
+                this.showLoading(`Processing EPUB: section ${i + 1} of ${totalSections}...`);
+
                 try {
-                    const doc = await book.load(item.href);
-                    const text = this.extractTextFromHTML(doc);
-                    fullText += text + '\n\n';
+                    // Load the section content
+                    const section = book.spine.get(item.href);
+                    await section.load(book.load.bind(book));
+
+                    // Get the document content
+                    const doc = section.document || section.contents;
+
+                    if (doc) {
+                        // Extract text from the document
+                        let sectionText = '';
+                        if (typeof doc === 'string') {
+                            sectionText = this.extractTextFromHTML(doc);
+                        } else if (doc.body) {
+                            sectionText = doc.body.textContent || doc.body.innerText || '';
+                        } else if (doc.textContent) {
+                            sectionText = doc.textContent;
+                        }
+
+                        fullText += sectionText + '\n\n';
+                    }
                 } catch (e) {
                     console.warn('Could not load section:', item.href, e);
+                    // Continue to next section instead of failing completely
                 }
             }
 
             if (fullText.trim().length === 0) {
-                throw new Error('No text extracted from EPUB');
+                throw new Error('No text extracted from EPUB. The file may be DRM-protected or use an unsupported format.');
             }
 
             this.hideLoading();
@@ -133,7 +157,7 @@ class FlashyReady {
         } catch (error) {
             this.hideLoading();
             console.error('Error loading EPUB:', error);
-            alert('Error loading EPUB file. The file may be DRM-protected or corrupted.\n\nWorkaround:\n1. Open your EPUB in an e-reader\n2. Copy the text\n3. Use the "Paste Text" option');
+            alert('Error loading EPUB file: ' + error.message + '\n\nThe file may be DRM-protected or corrupted.\n\nWorkaround:\n1. Open your EPUB in an e-reader\n2. Copy the text\n3. Use the "Paste Text" option');
         }
     }
 
