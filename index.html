@@ -14,50 +14,17 @@
 
     <!-- EPUBjs Library -->
     <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
-
-    <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-
-    <!-- Config -->
-    <script src="config.js"></script>
 </head>
 <body>
     <div id="app">
         <!-- Header -->
         <header>
             <h1>⚡ Flashy Ready</h1>
-            <div id="userInfo" class="user-info hidden">
-                <span id="userEmail"></span>
-                <button id="logoutBtn" class="icon-btn" aria-label="Logout">🚪</button>
-            </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
 
-        <!-- Login/Signup Screen -->
-        <div id="authScreen" class="screen active">
-            <div class="auth-container">
-                <h2>Welcome to Flashy Ready</h2>
-                <p class="auth-subtitle">Sign in to sync your books and progress across devices</p>
-
-                <div id="authTabs" class="auth-tabs">
-                    <button id="loginTab" class="auth-tab active">Login</button>
-                    <button id="signupTab" class="auth-tab">Sign Up</button>
-                </div>
-
-                <form id="authForm" class="auth-form">
-                    <input type="email" id="authEmail" placeholder="Email" required>
-                    <input type="password" id="authPassword" placeholder="Password" required>
-                    <input type="password" id="authConfirmPassword" placeholder="Confirm Password" class="hidden" required>
-
-                    <button type="submit" id="authSubmitBtn" class="auth-submit-btn">Login</button>
-                    <div id="authError" class="auth-error hidden"></div>
-                    <div id="authSuccess" class="auth-success hidden"></div>
-                </form>
-            </div>
-        </div>
-
         <!-- Main Screen - File Upload -->
-        <div id="uploadScreen" class="screen">
+        <div id="uploadScreen" class="screen active">
             <div class="upload-container">
                 <h2>Load Your Text</h2>
 
@@ -191,7 +158,6 @@
         </div>
     </div>
 
-    <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

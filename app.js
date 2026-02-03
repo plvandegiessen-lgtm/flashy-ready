@@ -594,21 +594,10 @@ class FlashyReady {
         }
     }
 
-    // ==================== Local Storage & Cloud Sync ====================
+    // ==================== Local Storage ====================
     saveSettings() {
         localStorage.setItem('flashy-settings', JSON.stringify(this.settings));
         localStorage.setItem('flashy-wpm', this.wpm);
-
-        // Sync to cloud if logged in
-        if (window.authManager && window.authManager.currentUser) {
-            const settingsToSync = {
-                fontSize: this.settings.fontSize,
-                theme: this.settings.theme,
-                highlightORP: this.settings.highlightORP,
-                wpm: this.wpm
-            };
-            window.authManager.syncSettings(settingsToSync);
-        }
     }
 
     loadSettings() {
@@ -649,11 +638,6 @@ class FlashyReady {
         const recent = filtered.slice(0, 10);
 
         localStorage.setItem('flashy-books', JSON.stringify(recent));
-
-        // Sync to cloud if logged in
-        if (window.authManager && window.authManager.currentUser) {
-            window.authManager.syncBooks(recent);
-        }
     }
 
     saveProgress() {
@@ -707,62 +691,6 @@ class FlashyReady {
 
     saveBookmarks() {
         localStorage.setItem('flashy-bookmarks', JSON.stringify(this.bookmarks));
-
-        // Sync to cloud if logged in
-        if (window.authManager && window.authManager.currentUser) {
-            window.authManager.syncBookmarks(this.bookmarks);
-        }
-    }
-
-    // ==================== Cloud Sync ====================
-    async syncFromCloud() {
-        if (!window.authManager || !window.authManager.currentUser) return;
-
-        try {
-            // Fetch data from cloud
-            const [cloudBooks, cloudSettings, cloudBookmarks] = await Promise.all([
-                window.authManager.fetchBooks(),
-                window.authManager.fetchSettings(),
-                window.authManager.fetchBookmarks()
-            ]);
-
-            // Merge with local data (cloud takes precedence)
-            if (cloudBooks && cloudBooks.length > 0) {
-                localStorage.setItem('flashy-books', JSON.stringify(cloudBooks));
-                this.updateRecentBooksList();
-            }
-
-            if (cloudSettings) {
-                this.settings = {
-                    fontSize: cloudSettings.fontSize || this.settings.fontSize,
-                    theme: cloudSettings.theme || this.settings.theme,
-                    highlightORP: cloudSettings.highlightORP !== undefined ? cloudSettings.highlightORP : this.settings.highlightORP
-                };
-                this.wpm = cloudSettings.wpm || this.wpm;
-
-                // Update UI
-                document.getElementById('fontSizeSlider').value = this.settings.fontSize;
-                document.getElementById('fontSizeValue').textContent = this.settings.fontSize + 'px';
-                document.getElementById('wordText').style.fontSize = this.settings.fontSize + 'px';
-                document.getElementById('themeSelect').value = this.settings.theme;
-                document.getElementById('highlightToggle').checked = this.settings.highlightORP;
-                document.body.className = 'theme-' + this.settings.theme;
-                document.getElementById('wpmSlider').value = this.wpm;
-                document.getElementById('wpmValue').textContent = this.wpm;
-
-                localStorage.setItem('flashy-settings', JSON.stringify(this.settings));
-                localStorage.setItem('flashy-wpm', this.wpm);
-            }
-
-            if (cloudBookmarks && cloudBookmarks.length > 0) {
-                this.bookmarks = cloudBookmarks;
-                localStorage.setItem('flashy-bookmarks', JSON.stringify(this.bookmarks));
-            }
-
-            console.log('Synced from cloud successfully');
-        } catch (error) {
-            console.error('Error syncing from cloud:', error);
-        }
     }
 
     // ==================== Keyboard Shortcuts ====================
